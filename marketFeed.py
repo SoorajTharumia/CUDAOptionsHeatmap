@@ -1,33 +1,38 @@
 import socket
 import struct
 import time
-import random
-import yfinance as yf
+import urllib.request
+import json
 
-use_live_data = True
 UDP_IP = "127.0.0.1"
 UDP_PORT = 54000
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
-print(f"Initializing Market Feed to {UDP_IP}:{UDP_PORT}...")
+print(f"Initializing ZERO-DEPENDENCY Multi-Variable Market Feed to {UDP_IP}:{UDP_PORT}...")
 
-current_price = 150.00
+def get_yahoo_price(ticker):
+    url = f"https://query1.finance.yahoo.com/v8/finance/chart/{ticker}"
+    req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+    
+    with urllib.request.urlopen(req, timeout=5) as response:
+        data = json.loads(response.read().decode())
+        return data['chart']['result'][0]['meta']['regularMarketPrice']
 
 while True:
     try:
-        if use_live_data:
-            ticker = yf.Ticker("AAPL")
-            price = ticker.fast_info['last_price']
-        else:
-            price = current_price + random.uniform(-0.50, 0.50)
-            current_price = price
+        price = get_yahoo_price("AAPL")
+        
+        r = get_yahoo_price("^IRX") / 100.0
+        
+        sigma = get_yahoo_price("^VIX") / 100.0
 
-        data = struct.pack("f", price)
+        data = struct.pack("fff", price, r, sigma)
         sock.sendto(data, (UDP_IP, UDP_PORT))
         
-        print(f"Transmitted Live Tick: ${price:.2f}")
-        time.sleep(1.0)
+        print(f"Transmitted LIVE Tick -> AAPL: ${price:.2f} | Rate: {r:.4f} | Volatility: {sigma:.4f}")
+        
+        time.sleep(1.0) 
         
     except Exception as e:
-        print(f"Network error: {e}")
-        time.sleep(1)
+        print(f"Network/API error: {e}")
+        time.sleep(2.0)

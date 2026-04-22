@@ -6,6 +6,7 @@
 #include <vector>
 #include <chrono>
 #include <algorithm>
+#include <cstdio> // Added for snprintf
 #include "engine.h"
 
 GLuint compileShader(const char* vertexPath, const char* fragmentPath) {
@@ -64,6 +65,29 @@ GLuint compileShader(const char* vertexPath, const char* fragmentPath) {
     return shaderProgram;
 }
 
+void cursor_position_callback(GLFWwindow* window, double xpos, double ypos) {
+    MarketClient* client = (MarketClient*)glfwGetWindowUserPointer(window);
+    if (!client) return;
+
+    int gridX = (int)((xpos / 1000.0) * 500.0);
+    int gridY = (int)((ypos / 400.0) * 200.0);
+
+    gridY = 199 - gridY;
+
+    if (gridX >= 0 && gridX < 500 && gridY >= 0 && gridY < 200) {
+        int idx = gridY * 500 + gridX;
+        
+        float strike = client->hostStrikePrices[idx];
+        float time = client->hostTimeToMaturity[idx];
+        float premium = client->hostPrices[idx];
+
+        char title[256];
+        snprintf(title, sizeof(title), "Hovering -> Strike: $%.2f | Time: %.2f yrs | Premium: $%.2f", strike, time, premium);
+        
+        glfwSetWindowTitle(window, title);
+    }
+}
+
 int main() {
     glfwInit();
 
@@ -87,6 +111,9 @@ int main() {
 
     unsigned short listenPort = 54000;
     MarketClient client(listenPort);
+    
+    glfwSetWindowUserPointer(window, &client);
+    glfwSetCursorPosCallback(window, cursor_position_callback);
 
     allocateAndLaunchBlackScholes(client);
 

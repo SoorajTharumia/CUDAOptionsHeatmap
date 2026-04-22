@@ -32,27 +32,37 @@ MarketClient::~MarketClient() {
 }
 
 bool MarketClient::pollLiveMarketData() {
-    float newStockPrice;
+    struct MarketPacket {
+        float price;
+        float riskFreeRate;
+        float volatility;
+    } packet;
+
     std::size_t received;
     sf::IpAddress sender;
     unsigned short senderPort;
 
-    socket.receive(&newStockPrice, sizeof(float), received, sender, senderPort);
-    if(received == sizeof(float)) {
-        std::cout << "Updated Stock Price: $" << newStockPrice << " from " << sender << std::endl;
+    socket.receive(&packet, sizeof(MarketPacket), received, sender, senderPort);
+    
+    if(received == sizeof(MarketPacket)) {
+        std::cout << "\nData received from " << sender << " | Price: $" << packet.price << " | Rate: " << packet.riskFreeRate << " | Vol: " << packet.volatility << std::endl;
         
         int width = 500;
         int height = 200;
         
-        float minStrike = newStockPrice * 0.80f; 
-        float maxStrike = newStockPrice * 1.20f;
+        float minStrike = packet.price * 0.80f; 
+        float maxStrike = packet.price * 1.20f;
         float strikeRange = maxStrike - minStrike;
 
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
                 int idx = y * width + x;
-                hostStockPrices[idx] = newStockPrice;
+                
+                hostStockPrices[idx] = packet.price;
                 hostStrikePrices[idx] = minStrike + ((float)x / (width - 1)) * strikeRange;
+                
+                hostRiskFreeRates[idx] = packet.riskFreeRate;
+                hostVolatilities[idx] = packet.volatility;
             }
         }
         return true;
