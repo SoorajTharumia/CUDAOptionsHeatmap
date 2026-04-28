@@ -1,5 +1,5 @@
-#ifndef ENGINE_H
-#define ENGINE_H
+#ifndef MARKET_CLIENT_H
+#define MARKET_CLIENT_H
 #include <cstdint>
 #include <vector>
 #include <SFML/Network.hpp>
@@ -33,4 +33,4 @@ public:
 
 void allocateAndLaunchBlackScholes(MarketClient& client);
 
-#endif // ENGINE_H
+#endif // MARKET_CLIENT_H
