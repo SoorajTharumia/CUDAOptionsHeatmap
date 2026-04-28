@@ -15,7 +15,7 @@ __global__ void calculateBlackScholesPriceKernel(uint32_t numOptions, const floa
     float t = deviceTimeToMaturity[index];
     float sigma = deviceVolatilities[index];
 
-    float d1 = (logf(S / K) + (r + (0.5 * sigma * sigma) * t)) / (sigma * sqrtf(t));
+    float d1 = (logf(S / K) + ((r + (0.5 * sigma * sigma)) * t)) / (sigma * sqrtf(t));
     float d2 = d1 - sigma * sqrtf(t);
 
     devicePrices[index] = S * normcdff(d1) - K * expf(-r * t) * normcdff(d2);
