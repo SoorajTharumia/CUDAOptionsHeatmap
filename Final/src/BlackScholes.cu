@@ -1,4 +1,4 @@
-#include "engine.h"
+#include "MarketClient.h"
 #include <iostream>
 
 __global__ void calculateBlackScholesPriceKernel(uint32_t numOptions, const float* deviceStockPrices, const float* deviceStrikePrices, const float* deviceTimeToMaturity, const float* deviceRiskFreeRates, const float* deviceVolatilities, float* devicePrices) {
